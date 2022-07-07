@@ -55,20 +55,20 @@ enum PIXEL_TYPE
 	PIXEL_QUARTER = 0x2591,
 };
 
-class olcSprite
+class EngineSprite
 {
 public:
-	olcSprite()
+	EngineSprite()
 	{
 
 	}
 
-	olcSprite(int w, int h)
+	EngineSprite(int w, int h)
 	{
 		Create(w, h);
 	}
 
-	olcSprite(std::wstring sFile)
+	EngineSprite(std::wstring sFile)
 	{
 		if (!Load(sFile))
 			Create(8, 8);
@@ -439,9 +439,8 @@ public:
 				if (changed1) break;
 				else t1x += signx1;
 			}
-			// Move line
 		next1:
-			// process second line until y value is about to change
+			
 			while (1) {
 				e2 += dy2;
 				while (e2 >= dx2) {
@@ -455,8 +454,7 @@ public:
 		next2:
 			if (minx>t1x) minx = t1x; if (minx>t2x) minx = t2x;
 			if (maxx<t1x) maxx = t1x; if (maxx<t2x) maxx = t2x;
-			drawline(minx, maxx, y);    // Draw line from min to max points found on the y
-										 // Now increase y
+			drawline(minx, maxx, y);
 			if (!changed1) t1x += signx1;
 			t1x += t1xp;
 			if (!changed2) t2x += signx2;
@@ -466,7 +464,6 @@ public:
 
 		}
 	next:
-		// Second half
 		dx1 = (int)(x3 - x2); if (dx1<0) { dx1 = -dx1; signx1 = -1; }
 		else signx1 = 1;
 		dy1 = (int)(y3 - y2);
@@ -484,12 +481,11 @@ public:
 			t1xp = 0; t2xp = 0;
 			if (t1x<t2x) { minx = t1x; maxx = t2x; }
 			else { minx = t2x; maxx = t1x; }
-			// process first line until y value is about to change
 			while (i<dx1) {
 				e1 += dy1;
 				while (e1 >= dx1) {
 					e1 -= dx1;
-					if (changed1) { t1xp = signx1; break; }//t1x += signx1;
+					if (changed1) { t1xp = signx1; break; }
 					else          goto next3;
 				}
 				if (changed1) break;
@@ -497,7 +493,6 @@ public:
 				if (i<dx1) i++;
 			}
 		next3:
-			// process second line until y value is about to change
 			while (t2x != x3) {
 				e2 += dy2;
 				while (e2 >= dx2) {
@@ -529,7 +524,7 @@ public:
 		int p = 3 - 2 * r;
 		if (!r) return;
 
-		while (y >= x) // only formulate 1/8 of circle
+		while (y >= x)
 		{
 			Draw(xc - x, yc - y, c, col);//upper left left
 			Draw(xc - y, yc - x, c, col);//upper upper left
@@ -559,7 +554,6 @@ public:
 
 		while (y >= x)
 		{
-			// Modified to draw scan-lines instead of edges
 			drawline(xc - x, xc + x, yc - y);
 			drawline(xc - y, xc + y, yc - x);
 			drawline(xc - x, xc + x, yc + y);
@@ -601,10 +595,6 @@ public:
 
 	void DrawWireFrameModel(const std::vector<std::pair<float, float>> &vecModelCoordinates, float x, float y, float r = 0.0f, float s = 1.0f, short col = FG_WHITE, short c = PIXEL_SOLID)
 	{
-		// pair.first = x coordinate
-		// pair.second = y coordinate
-
-		// Create translated model vector of coordinate pairs
 		std::vector<std::pair<float, float>> vecTransformedCoordinates;
 		int verts = vecModelCoordinates.size();
 		vecTransformedCoordinates.resize(verts);
@@ -766,7 +756,6 @@ private:
 
 					default:
 						break;
-						// We don't care just at the moment
 					}
 				}
 
@@ -792,7 +781,6 @@ private:
 					m_mouseOldState[m] = m_mouseNewState[m];
 				}
 
-
 				// Handle Frame Update
 				if (!OnUserUpdate(fElapsedTime))
 					m_bAtomActive = false;
@@ -806,44 +794,32 @@ private:
 
 			if (m_bEnableSound)
 			{
-				// Close and Clean up audio system
+				
 			}
 
-			// Allow the user to free resources if they have overrided the destroy function
 			if (OnUserDestroy())
 			{
-				// User has permitted destroy, so exit and clean up
 				delete[] m_bufScreen;
 				SetConsoleActiveScreenBuffer(m_hOriginalConsole);
 				m_cvGameFinished.notify_one();
 			}
 			else
 			{
-				// User denied destroy for some reason, so continue running
 				m_bAtomActive = true;
 			}
 		}
 	}
 
 public:
-	// User MUST OVERRIDE THESE!!
 	virtual bool OnUserCreate()							= 0;
 	virtual bool OnUserUpdate(float fElapsedTime)		= 0;	
-
-	// Optional for clean up 
-	virtual bool OnUserDestroy()						{ return true; }
 
 	class olcAudioSample
 	{
 	public:
-		olcAudioSample()
-		{
 
-		}
-
-		olcAudioSample(std::wstring sWavFile)
+		AudioSample(std::wstring sWavFile)
 		{
-			// Load Wav file and convert to float format
 			FILE *f = nullptr;
 			_wfopen_s(&f, sWavFile.c_str(), L"rb");
 			if (f == nullptr)
@@ -914,10 +890,7 @@ public:
 	
 	// This vector holds all loaded sound samples in memory
 	std::vector<olcAudioSample> vecAudioSamples;
-
-	// This structure represents a sound that is currently playing. It only
-	// holds the sound ID and where this instance of it is up to for its
-	// current playback
+	
 	struct sCurrentlyPlayingSample
 	{
 		int nAudioSampleID = 0;
@@ -927,8 +900,6 @@ public:
 	};
 	std::list<sCurrentlyPlayingSample> listActiveSamples;
 
-	// Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
-	// number is returned if successful, otherwise -1
 	unsigned int LoadAudioSample(std::wstring sWavFile)
 	{
 		if (!m_bEnableSound)
@@ -944,7 +915,6 @@ public:
 			return -1;
 	}
 
-	// Add sample 'id' to the mixers sounds to play list
 	void PlaySample(int id, bool bLoop = false)
 	{
 		sCurrentlyPlayingSample a;
@@ -1016,28 +986,6 @@ public:
 		return true;
 	}
 
-	// Stop and clean up audio system
-	bool DestroyAudio()
-	{
-		m_bAudioThreadActive = false;
-		return false;
-	}
-
-	// Handler for soundcard request for more data
-	void waveOutProc(HWAVEOUT hWaveOut, UINT uMsg, DWORD dwParam1, DWORD dwParam2)
-	{
-		if (uMsg != WOM_DONE) return;
-		m_nBlockFree++;
-		std::unique_lock<std::mutex> lm(m_muxBlockNotZero);
-		m_cvBlockNotZero.notify_one();
-	}
-
-	// Static wrapper for sound card handler
-	static void CALLBACK waveOutProcWrap(HWAVEOUT hWaveOut, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
-	{
-		((olcConsoleGameEngine*)dwInstance)->waveOutProc(hWaveOut, uMsg, dwParam1, dwParam2);
-	}
-
 	void AudioThread()
 	{
 		m_fGlobalTime = 0.0f;
@@ -1087,12 +1035,6 @@ public:
 
 				m_fGlobalTime = m_fGlobalTime + fTimeStep;
 			}
-
-			// Send block to sound device
-			waveOutPrepareHeader(m_hwDevice, &m_pWaveHeaders[m_nBlockCurrent], sizeof(WAVEHDR));
-			waveOutWrite(m_hwDevice, &m_pWaveHeaders[m_nBlockCurrent], sizeof(WAVEHDR));
-			m_nBlockCurrent++;
-			m_nBlockCurrent %= m_nBlockCount;
 		}
 	}
 
@@ -1124,13 +1066,10 @@ public:
 				s.bFinished = true; // Else sound has completed
 		}
 
-		// If sounds have completed then remove them
 		listActiveSamples.remove_if([](const sCurrentlyPlayingSample &s) {return s.bFinished; });
 
-		// The users application might be generating sound, so grab that if it exists
 		fMixerSample += onUserSoundSample(nChannel, fGlobalTime, fTimeStep);
 
-		// Return the sample via an optional user override to filter the sound
 		return onUserSoundFilter(nChannel, fGlobalTime, fMixerSample);
 	}
 

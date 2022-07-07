@@ -52,10 +52,10 @@ protected:
 		sLevel += L"...................####.........................................";
 		sLevel += L"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG.GGGGGGGGGGGGGG.....GGGGGGGG";
 		sLevel += L"...................................#.................###........";
-		sLevel += L"........................############.#............###...........";
+		sLevel += L"........................#............#............###...........";
 		sLevel += L"........................#............#.........###..............";
-		sLevel += L"........................######..######......###.................";
-		sLevel += L"........................#................###....................";
+		sLevel += L"........................#######################.................";
+		sLevel += L"................................................................";
 		sLevel += L"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG";
 		sLevel += L"................................................................";
 
@@ -80,9 +80,6 @@ protected:
 			if (x >= 0 && x < nLevelWidth && y >= 0 && y < nLevelHeight)
 				sLevel[y*nLevelWidth + x] = c;
 		};
-
-		//fPlayerVelX = 0.0f;
-		//fPlayerVelY = 0.0f;
 
 		// Handle Input
 		if (IsFocused())
@@ -119,8 +116,7 @@ protected:
 			}
 		}
 
-		// Gravity
-		fPlayerVelY += 20.0f * fElapsedTime;
+		
 
 		// Drag
 		if (bPlayerOnGround)
@@ -146,8 +142,10 @@ protected:
 		// Calculate potential new position
 		float fNewPlayerPosX = fPlayerPosX + fPlayerVelX * fElapsedTime;
 		float fNewPlayerPosY = fPlayerPosY + fPlayerVelY * fElapsedTime;
+		
+		// Gravity
+		fPlayerVelY += 20.0f * fElapsedTime;
 
-		// Check for pickups!
 		if (GetTile(fNewPlayerPosX + 0.0f, fNewPlayerPosY + 0.0f) == L'o')
 			SetTile(fNewPlayerPosX + 0.0f, fNewPlayerPosY + 0.0f, L'.');
 
@@ -160,7 +158,7 @@ protected:
 		if (GetTile(fNewPlayerPosX + 1.0f, fNewPlayerPosY + 1.0f) == L'o')
 			SetTile(fNewPlayerPosX + 1.0f, fNewPlayerPosY + 1.0f, L'.');
 
-		// Check for Collision
+
 		if (fPlayerVelX <= 0) // Moving Left
 		{
 			if (GetTile(fNewPlayerPosX + 0.0f, fPlayerPosY + 0.0f) != L'.' || GetTile(fNewPlayerPosX + 0.0f, fPlayerPosY + 0.9f) != L'.')
@@ -198,34 +196,36 @@ protected:
 				nDirModX = 0;
 			}
 		}
+		
+		// Link camera to player position
+		fCameraPosX = fPlayerPosX;
+		fCameraPosY = fPlayerPosY;
+		
+		// Get offsets for smooth movement
+		float fTileOffsetX = (fOffsetX - (int)fOffsetX) * nTileWidth;
+		float fTileOffsetY = (fOffsetY - (int)fOffsetY) * nTileHeight;
 
 		// Apply new position
 		fPlayerPosX = fNewPlayerPosX;
 		fPlayerPosY = fNewPlayerPosY;
-
-		// Link camera to player position
-		fCameraPosX = fPlayerPosX;
-		fCameraPosY = fPlayerPosY;
-
+		
+		// Calculate Top-Leftmost visible tile
+		float fOffsetX = fCameraPosX - (float)nVisibleTilesX / 2.0f;
+		float fOffsetY = fCameraPosY - (float)nVisibleTilesY / 2.0f;
+		
 		// Draw Level
 		int nTileWidth = 16;
 		int nTileHeight = 16;
 		int nVisibleTilesX = ScreenWidth() / nTileWidth;
 		int nVisibleTilesY = ScreenHeight() / nTileHeight;
 
-		// Calculate Top-Leftmost visible tile
-		float fOffsetX = fCameraPosX - (float)nVisibleTilesX / 2.0f;
-		float fOffsetY = fCameraPosY - (float)nVisibleTilesY / 2.0f;
+		
 
 		// Clamp camera to game boundaries
 		if (fOffsetX < 0) fOffsetX = 0;
 		if (fOffsetY < 0) fOffsetY = 0;
 		if (fOffsetX > nLevelWidth - nVisibleTilesX) fOffsetX = nLevelWidth - nVisibleTilesX;
 		if (fOffsetY > nLevelHeight - nVisibleTilesY) fOffsetY = nLevelHeight - nVisibleTilesY;
-
-		// Get offsets for smooth movement
-		float fTileOffsetX = (fOffsetX - (int)fOffsetX) * nTileWidth;
-		float fTileOffsetY = (fOffsetY - (int)fOffsetY) * nTileHeight;
 
 		// Draw visible tile map
 		for (int x = -1; x < nVisibleTilesX + 1; x++)
@@ -261,9 +261,7 @@ protected:
 				}
 			}
 		}
-
-		// Draw Player
-		//Fill((fPlayerPosX - fOffsetX) * nTileWidth, (fPlayerPosY - fOffsetY) * nTileWidth, (fPlayerPosX - fOffsetX + 1.0f) * nTileWidth, (fPlayerPosY - fOffsetY + 1.0f) * nTileHeight, PIXEL_SOLID, FG_GREEN);
+		
 		DrawPartialSprite((fPlayerPosX - fOffsetX) * nTileWidth, (fPlayerPosY - fOffsetY) * nTileWidth, spriteMan, nDirModX * nTileWidth, nDirModY * nTileHeight, nTileWidth, nTileHeight);
 		return true;
 	}
